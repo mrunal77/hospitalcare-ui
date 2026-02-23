@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { appointmentApi } from '../api/appointments';
-import { Plus, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { Appointment, CreateAppointmentDto, RescheduleAppointmentDto } from '../types';
 import AppointmentModal from '../components/modals/AppointmentModal';

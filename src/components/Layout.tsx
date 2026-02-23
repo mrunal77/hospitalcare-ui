@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -27,9 +27,6 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Doctors', href: '/doctors', icon: Stethoscope },
     { name: 'Appointments', href: '/appointments', icon: Calendar },
   ];
-
-  const isAdmin = user?.role === 'Admin';
-  const isEmployee = user?.role === 'HospitalEmployee' || isAdmin;
 
   return (
     <div className="min-h-screen bg-gray-50">

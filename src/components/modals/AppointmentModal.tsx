@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Appointment, CreateAppointmentDto, RescheduleAppointmentDto, Patient, Doctor } from '../types';
+import type { Appointment, CreateAppointmentDto, RescheduleAppointmentDto, Patient, Doctor } from '../../types';
 import { patientApi } from '../../api/patients';
 import { doctorApi } from '../../api/doctors';
 
@@ -11,7 +11,7 @@ interface AppointmentModalProps {
   isLoading?: boolean;
 }
 
-export default function AppointmentModal({ appointment, mode, onSave, onClose, isLoading }: AppointmentModalProps) {
+export default function AppointmentModal({ mode, onSave, onClose, isLoading }: AppointmentModalProps) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   

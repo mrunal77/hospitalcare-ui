@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Doctor, CreateDoctorDto } from '../types';
+import type { Doctor, CreateDoctorDto } from '../../types';
 
 interface DoctorModalProps {
   doctor?: Doctor;
