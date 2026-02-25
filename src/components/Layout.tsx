@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
@@ -9,6 +9,8 @@ import {
   LogOut,
   Menu,
   X,
+  UserCircle,
+  UserPlus,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -19,14 +21,24 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const canRegister = user?.role === 'HospitalEmployee' || user?.role === 'Admin';
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Patients', href: '/patients', icon: Users },
     { name: 'Doctors', href: '/doctors', icon: Stethoscope },
     { name: 'Appointments', href: '/appointments', icon: Calendar },
+    { name: 'Profile', href: '/profile', icon: UserCircle },
+    ...(canRegister ? [{ name: 'Register User', href: '/register', icon: UserPlus }] : []),
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -55,7 +67,7 @@ export default function Layout({ children }: LayoutProps) {
                 </span>
               </div>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="flex items-center text-gray-500 hover:text-gray-700"
               >
                 <LogOut size={20} />

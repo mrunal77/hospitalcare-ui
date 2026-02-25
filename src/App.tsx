@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Patients from './pages/Patients';
 import Doctors from './pages/Doctors';
 import Appointments from './pages/Appointments';
+import Profile from './pages/Profile';
+import Register from './pages/Register';
 import { ToastContainer, useToast } from './components/Toast';
 import type { ReactNode } from 'react';
 
@@ -80,6 +82,22 @@ function AppRoutes() {
         element={
           <PrivateRoute>
             <Appointments />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PrivateRoute>
+            <Register />
           </PrivateRoute>
         }
       />
