@@ -41,9 +41,9 @@ export default function AppointmentModal({ mode, onSave, onClose, isLoading }: A
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="px-6 py-4 border-b border-gray-200">
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 border border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900">
             {mode === 'create' ? 'New Appointment' : 'Reschedule Appointment'}
           </h2>
@@ -53,12 +53,12 @@ export default function AppointmentModal({ mode, onSave, onClose, isLoading }: A
             {mode === 'create' ? (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Patient</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Patient</label>
                   <select
                     required
                     value={(formData as CreateAppointmentDto).patientId}
                     onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all duration-200"
                   >
                     <option value="">Select Patient</option>
                     {patients.map((p) => (
@@ -69,12 +69,12 @@ export default function AppointmentModal({ mode, onSave, onClose, isLoading }: A
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Doctor</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Doctor</label>
                   <select
                     required
                     value={(formData as CreateAppointmentDto).doctorId}
                     onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all duration-200"
                   >
                     <option value="">Select Doctor</option>
                     {doctors.map((d) => (
@@ -85,17 +85,17 @@ export default function AppointmentModal({ mode, onSave, onClose, isLoading }: A
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Date & Time</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Date & Time</label>
                   <input
                     type="datetime-local"
                     required
                     value={(formData as CreateAppointmentDto).appointmentDate}
                     onChange={(e) => setFormData({ ...formData, appointmentDate: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all duration-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Duration (minutes)</label>
                   <input
                     type="number"
                     required
@@ -103,43 +103,45 @@ export default function AppointmentModal({ mode, onSave, onClose, isLoading }: A
                     max="240"
                     value={(formData as CreateAppointmentDto).durationMinutes}
                     onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all duration-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Reason</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason</label>
                   <textarea
                     required
                     rows={2}
                     value={(formData as CreateAppointmentDto).reason}
                     onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all duration-200 resize-none"
+                    placeholder="Enter reason for appointment"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Notes</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes (optional)</label>
                   <textarea
                     rows={2}
                     value={(formData as CreateAppointmentDto).notes || ''}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all duration-200 resize-none"
+                    placeholder="Additional notes"
                   />
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">New Date & Time</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">New Date & Time</label>
                   <input
                     type="datetime-local"
                     required
                     value={(formData as RescheduleAppointmentDto).newDate}
                     onChange={(e) => setFormData({ ...formData, newDate: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all duration-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Duration (minutes)</label>
                   <input
                     type="number"
                     required
@@ -147,24 +149,24 @@ export default function AppointmentModal({ mode, onSave, onClose, isLoading }: A
                     max="240"
                     value={(formData as RescheduleAppointmentDto).newDurationMinutes}
                     onChange={(e) => setFormData({ ...formData, newDurationMinutes: parseInt(e.target.value) })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all duration-200"
                   />
                 </div>
               </>
             )}
           </div>
-          <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+          <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              className="px-5 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="px-5 py-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 disabled:opacity-50 font-medium shadow-lg shadow-violet-600/25 transition-all duration-200"
             >
               {isLoading ? 'Saving...' : 'Save'}
             </button>

@@ -12,7 +12,6 @@ export default defineConfig({
         target: 'http://localhost:5239',
         changeOrigin: true,
         secure: false,
-        // Don't rewrite the path - keep /api prefix
       },
     },
   },
