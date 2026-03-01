@@ -70,10 +70,13 @@ export interface RescheduleAppointmentDto {
 }
 
 export interface User {
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface AuthResponse {
@@ -96,4 +99,34 @@ export interface RegisterUserDto {
   firstName: string;
   lastName: string;
   role: string;
+}
+
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordDto {
+  newPassword: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  permission: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateRoleDto {
+  name: string;
+  description: string;
+  permission: string;
+}
+
+export interface UpdateRoleDto {
+  name: string;
+  description: string;
+  permission: string;
 }

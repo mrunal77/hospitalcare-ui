@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { appointmentApi } from '../api/appointments';
-import { Plus, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, RefreshCw, Calendar, Clock, Stethoscope } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { Appointment, CreateAppointmentDto, RescheduleAppointmentDto } from '../types';
 import AppointmentModal from '../components/modals/AppointmentModal';
@@ -59,18 +59,18 @@ export default function Appointments() {
   const canCancel = canCreate || user?.role === 'Doctor';
   const canReschedule = canCreate;
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyles = (status: string) => {
     switch (status) {
       case 'Scheduled':
-        return 'bg-blue-100 text-blue-800';
+        return { bg: 'bg-blue-100', text: 'text-blue-700', ring: 'ring-blue-500/20', icon: Clock };
       case 'Completed':
-        return 'bg-green-100 text-green-800';
+        return { bg: 'bg-emerald-100', text: 'text-emerald-700', ring: 'ring-emerald-500/20', icon: CheckCircle };
       case 'Cancelled':
-        return 'bg-red-100 text-red-800';
+        return { bg: 'bg-red-100', text: 'text-red-700', ring: 'ring-red-500/20', icon: XCircle };
       case 'Rescheduled':
-        return 'bg-yellow-100 text-yellow-800';
+        return { bg: 'bg-amber-100', text: 'text-amber-700', ring: 'ring-amber-500/20', icon: RefreshCw };
       default:
-        return 'bg-gray-100 text-gray-800';
+        return { bg: 'bg-gray-100', text: 'text-gray-700', ring: 'ring-gray-500/20', icon: Clock };
     }
   };
 
@@ -83,86 +83,101 @@ export default function Appointments() {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
+          <p className="text-gray-500 mt-1">View and manage all appointments</p>
+        </div>
         {canCreate && (
           <button
             onClick={() => setModalState({ type: 'create' })}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="inline-flex items-center justify-center px-4 py-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all duration-200 font-medium shadow-lg shadow-violet-600/25"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-5 w-5 mr-2" />
             New Appointment
           </button>
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      {/* Appointments List */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <div className="p-12 text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-violet-600 border-t-transparent rounded-full mx-auto"></div>
+            <p className="text-gray-500 mt-4">Loading appointments...</p>
+          </div>
+        ) : appointments.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="p-4 bg-gray-100 rounded-full inline-flex mb-4">
+              <Calendar className="h-8 w-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500">No appointments found</p>
+          </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Patient
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Doctor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date & Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Duration
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reason
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {appointments.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    No appointments found
-                  </td>
-                </tr>
-              ) : (
-                appointments.map((appointment) => (
-                  <tr key={appointment.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {appointment.patientName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {appointment.doctorName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(appointment.appointmentDate).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {appointment.durationMinutes} min
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                      {appointment.reason}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(appointment.status)}`}>
+          <div className="divide-y divide-gray-100">
+            {appointments.map((appointment) => {
+              const statusStyle = getStatusStyles(appointment.status);
+              const StatusIcon = statusStyle.icon;
+              
+              return (
+                <div key={appointment.id} className="p-5 hover:bg-gray-50/50 transition-colors duration-150">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    {/* Patient & Doctor Info */}
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-semibold shadow-lg">
+                        {appointment.patientName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{appointment.patientName}</p>
+                        <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
+                          <Stethoscope className="h-3.5 w-3.5" />
+                          <span>Dr. {appointment.doctorName}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Date & Time */}
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="p-1.5 bg-gray-100 rounded-lg">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                        </div>
+                        <span>
+                          {new Date(appointment.appointmentDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="p-1.5 bg-gray-100 rounded-lg">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                        </div>
+                        <span>
+                          {new Date(appointment.appointmentDate).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        <span className="text-gray-400">({appointment.durationMinutes} min)</span>
+                      </div>
+                    </div>
+
+                    {/* Status & Actions */}
+                    <div className="flex items-center gap-3">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ring-1 ring-inset ${statusStyle.bg} ${statusStyle.text} ${statusStyle.ring}`}>
+                        <StatusIcon className="h-3.5 w-3.5" />
                         {appointment.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex space-x-2">
+                      
+                      <div className="flex items-center gap-1">
                         {canComplete && appointment.status === 'Scheduled' && (
                           <button
                             onClick={() => setModalState({ type: 'complete', appointment })}
-                            className="text-green-600 hover:text-green-800"
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors duration-150"
                             title="Complete"
                           >
                             <CheckCircle className="h-4 w-4" />
@@ -171,7 +186,7 @@ export default function Appointments() {
                         {canReschedule && (appointment.status === 'Scheduled' || appointment.status === 'Rescheduled') && (
                           <button
                             onClick={() => setModalState({ type: 'reschedule', appointment })}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="p-2 text-violet-600 hover:bg-violet-50 rounded-lg transition-colors duration-150"
                             title="Reschedule"
                           >
                             <RefreshCw className="h-4 w-4" />
@@ -180,19 +195,31 @@ export default function Appointments() {
                         {canCancel && (appointment.status === 'Scheduled' || appointment.status === 'Rescheduled') && (
                           <button
                             onClick={() => setModalState({ type: 'cancel', appointment })}
-                            className="text-red-600 hover:text-red-800"
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
                             title="Cancel"
                           >
                             <XCircle className="h-4 w-4" />
                           </button>
                         )}
                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+
+                  {/* Reason */}
+                  <div className="mt-3 pt-3 border-t border-gray-50">
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium text-gray-700">Reason:</span> {appointment.reason}
+                    </p>
+                    {appointment.notes && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        <span className="font-medium text-gray-700">Notes:</span> {appointment.notes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -218,7 +245,7 @@ export default function Appointments() {
       {modalState.type === 'cancel' && modalState.appointment && (
         <ConfirmModal
           title="Cancel Appointment"
-          message="Are you sure you want to cancel this appointment?"
+          message="Are you sure you want to cancel this appointment? This action cannot be undone."
           onConfirm={() => cancelMutation.mutate(modalState.appointment!.id)}
           onClose={() => setModalState({ type: null })}
           isLoading={cancelMutation.isPending}

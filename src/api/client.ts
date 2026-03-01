@@ -7,6 +7,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Don't automatically follow redirects - we want to see the actual response
+  maxRedirects: 0,
 });
 
 api.interceptors.request.use((config) => {
@@ -20,7 +22,22 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Handle 307 redirect - retry with the same method
+    if (error.response?.status === 307) {
+      const redirectUrl = error.response.headers.location;
+      if (redirectUrl) {
+        // Clone the request and retry to the redirect URL
+        return api.request({
+          ...error.config,
+          url: redirectUrl,
+        });
+      }
+    }
+    
+    const isAuthError = error.response?.status === 401;
+    const hasToken = !!localStorage.getItem('token');
+    
+    if (isAuthError && hasToken) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
