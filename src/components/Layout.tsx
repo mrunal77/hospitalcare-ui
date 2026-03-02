@@ -25,8 +25,9 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const canRegister = user?.role === 'HospitalEmployee' || user?.role === 'Admin';
   const isAdmin = user?.role === 'Admin';
+
+  // const canRegister = user?.role === 'HospitalEmployee' || user?.role === 'Admin';
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -34,7 +35,8 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Doctors', href: '/doctors', icon: Stethoscope },
     { name: 'Appointments', href: '/appointments', icon: Calendar },
     ...(isAdmin ? [{ name: 'Manage Users', href: '/users', icon: UserPlus }] : []),
-    ...(canRegister ? [{ name: 'Register User', href: '/register', icon: UserPlus }] : []),
+    // Register User functionality is disabled - Admin can manage users from Manage Users page
+    // ...(canRegister ? [{ name: 'Register User', href: '/register', icon: UserPlus }] : []),
     { name: 'Profile', href: '/profile', icon: UserCircle },
   ];
 
