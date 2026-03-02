@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import type { Doctor, CreateDoctorDto } from '../../types';
+import { useState, useEffect } from 'react';
+import type { Doctor, CreateDoctorDto, Specialization } from '../../types';
+import { specializationApi } from '../../api/specializations';
 
 interface DoctorModalProps {
   doctor?: Doctor;
@@ -21,8 +22,27 @@ export default function DoctorModal({ doctor, onSave, onClose, isLoading }: Doct
         }
       : { firstName: '', lastName: '', specialization: '', email: '', phone: '', licenseNumber: '' }
   );
+  const [specializations, setSpecializations] = useState<Specialization[]>([]);
+  const [specializationsLoading, setSpecializationsLoading] = useState(true);
 
   const isEdit = !!doctor;
+
+  useEffect(() => {
+    const fetchSpecializations = async () => {
+      try {
+        const data = await specializationApi.getActive();
+        setSpecializations(data);
+        if (!doctor && data.length > 0) {
+          setFormData(prev => ({ ...prev, specialization: data[0].name }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch specializations:', err);
+      } finally {
+        setSpecializationsLoading(false);
+      }
+    };
+    fetchSpecializations();
+  }, [doctor]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,14 +83,25 @@ export default function DoctorModal({ doctor, onSave, onClose, isLoading }: Doct
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Specialization</label>
-              <input
-                type="text"
-                required
-                value={formData.specialization}
-                onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all duration-200"
-                placeholder="e.g., Cardiology, Neurology"
-              />
+              {specializationsLoading ? (
+                <div className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl">
+                  <div className="animate-pulse h-6 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                <select
+                  required
+                  value={formData.specialization}
+                  onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all duration-200"
+                >
+                  <option value="">Select specialization</option>
+                  {specializations.map((spec) => (
+                    <option key={spec.id} value={spec.name}>
+                      {spec.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>

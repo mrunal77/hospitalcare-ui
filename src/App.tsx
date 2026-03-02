@@ -9,6 +9,7 @@ import Doctors from './pages/Doctors';
 import Appointments from './pages/Appointments';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
+import Users from './pages/Users';
 import { ToastContainer, useToast } from './components/Toast';
 import GlobalLoading from './components/GlobalLoading';
 import type { ReactNode } from 'react';
@@ -119,6 +120,14 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <Register />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <PrivateRoute>
+              <Users />
             </PrivateRoute>
           }
         />

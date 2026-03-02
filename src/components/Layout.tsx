@@ -26,14 +26,16 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const canRegister = user?.role === 'HospitalEmployee' || user?.role === 'Admin';
+  const isAdmin = user?.role === 'Admin';
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Patients', href: '/patients', icon: Users },
     { name: 'Doctors', href: '/doctors', icon: Stethoscope },
     { name: 'Appointments', href: '/appointments', icon: Calendar },
-    { name: 'Profile', href: '/profile', icon: UserCircle },
+    ...(isAdmin ? [{ name: 'Manage Users', href: '/users', icon: UserPlus }] : []),
     ...(canRegister ? [{ name: 'Register User', href: '/register', icon: UserPlus }] : []),
+    { name: 'Profile', href: '/profile', icon: UserCircle },
   ];
 
   const handleLogout = () => {

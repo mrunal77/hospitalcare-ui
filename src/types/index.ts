@@ -130,3 +130,11 @@ export interface UpdateRoleDto {
   description: string;
   permission: string;
 }
+
+export interface Specialization {
+  id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+}

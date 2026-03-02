@@ -7,6 +7,11 @@ export const roleApi = {
     return response.data;
   },
 
+  getActive: async (): Promise<Role[]> => {
+    const response = await api.get<Role[]>('/roles/active');
+    return response.data;
+  },
+
   getById: async (id: string): Promise<Role> => {
     const response = await api.get<Role>(`/roles/${id}`);
     return response.data;

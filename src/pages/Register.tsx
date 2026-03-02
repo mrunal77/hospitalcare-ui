@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { roleApi } from '../api/roles';
 import { UserPlus, Mail, Lock, User, CheckCircle } from 'lucide-react';
-import type { RegisterUserDto } from '../types';
+import type { RegisterUserDto, Role } from '../types';
 
 export default function Register() {
   const [formData, setFormData] = useState<RegisterUserDto>({
@@ -15,14 +16,42 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const roles = [
-    { value: 'HospitalEmployee', label: 'Hospital Employee', description: 'Manage patients and appointments', icon: '🏥' },
-    { value: 'Doctor', label: 'Doctor', description: 'View and complete appointments', icon: '👨‍⚕️' },
-    { value: 'Admin', label: 'Administrator', description: 'Full system access', icon: '⚡' },
-  ];
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const activeRoles = await roleApi.getActive();
+        setRoles(activeRoles);
+        if (activeRoles.length > 0) {
+          setFormData(prev => ({ ...prev, role: activeRoles[0].name }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch roles:', err);
+        setRoles([
+          { id: '1', name: 'HospitalEmployee', description: 'Hospital Employee', permission: 'EmployeeAccess', isActive: true, createdAt: '' },
+          { id: '2', name: 'Doctor', description: 'Doctor', permission: 'DoctorAccess', isActive: true, createdAt: '' },
+          { id: '3', name: 'Admin', description: 'Administrator', permission: 'FullAccess', isActive: true, createdAt: '' },
+        ]);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+    fetchRoles();
+  }, []);
+
+  const roleIcons: Record<string, string> = {
+    Admin: '⚡',
+    Doctor: '👨‍⚕️',
+    HospitalEmployee: '🏥',
+    Nurse: '👩‍⚕️',
+    Receptionist: '📋',
+  };
+
+  const getRoleIcon = (roleName: string) => roleIcons[roleName] || '👤';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,31 +187,37 @@ export default function Register() {
           {/* Role Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Select Role</label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {roles.map((role) => (
-                <button
-                  key={role.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, role: role.value })}
-                  className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                    formData.role === role.value
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500/20'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">{role.icon}</span>
-                    {formData.role === role.value && (
-                      <div className="p-1 bg-blue-500 rounded-full">
-                        <CheckCircle className="h-3 w-3 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="font-medium text-gray-900 text-sm">{role.label}</p>
-                  <p className="text-xs text-gray-500 mt-1">{role.description}</p>
-                </button>
-              ))}
-            </div>
+            {rolesLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {roles.map((role) => (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: role.name })}
+                    className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                      formData.role === role.name
+                        ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500/20'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl">{getRoleIcon(role.name)}</span>
+                      {formData.role === role.name && (
+                        <div className="p-1 bg-blue-500 rounded-full">
+                          <CheckCircle className="h-3 w-3 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="font-medium text-gray-900 text-sm">{role.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">{role.description}</p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
