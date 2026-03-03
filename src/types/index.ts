@@ -138,3 +138,70 @@ export interface Specialization {
   isActive: boolean;
   createdAt: string;
 }
+
+export interface MedicineDetail {
+  id: string;
+  name: string;
+  dosage: string;
+  amount: string;
+  routine: string;
+  instructions?: string;
+  durationDays: number;
+}
+
+export interface Prescription {
+  id: string;
+  appointmentId: string;
+  doctorId: string;
+  patientId: string;
+  doctorName: string;
+  patientName: string;
+  diagnosis: string;
+  medicines: MedicineDetail[];
+  notes?: string;
+  prescriptionDate: string;
+}
+
+export interface CreatePrescriptionDto {
+  appointmentId: string;
+  doctorId: string;
+  patientId: string;
+  diagnosis: string;
+  medicines: CreateMedicineDetailDto[];
+  notes?: string;
+}
+
+export interface CreateMedicineDetailDto {
+  name: string;
+  dosage: string;
+  amount: string;
+  routine: string;
+  instructions?: string;
+  durationDays: number;
+}
+
+export interface UpdatePrescriptionDto {
+  diagnosis?: string;
+  notes?: string;
+}
+
+export interface Medicine {
+  id: string;
+  subCategory: string;
+  productName: string;
+  saltComposition: string;
+  price?: number;
+  manufacturer: string;
+  description: string;
+  sideEffects?: string;
+  drugInteractions?: string;
+  isActive: boolean;
+}
+
+export interface SearchMedicineResult {
+  id: string;
+  productName: string;
+  saltComposition: string;
+  manufacturer: string;
+  subCategory: string;
+}

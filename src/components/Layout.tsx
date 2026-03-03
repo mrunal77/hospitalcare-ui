@@ -12,6 +12,7 @@ import {
   UserCircle,
   UserPlus,
   Stethoscope as Heart,
+  Pill,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -29,14 +30,13 @@ export default function Layout({ children }: LayoutProps) {
 
   // const canRegister = user?.role === 'HospitalEmployee' || user?.role === 'Admin';
 
-  const navigation = [
+const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Patients', href: '/patients', icon: Users },
     { name: 'Doctors', href: '/doctors', icon: Stethoscope },
     { name: 'Appointments', href: '/appointments', icon: Calendar },
+    { name: 'Prescriptions', href: '/prescriptions', icon: Pill },
     ...(isAdmin ? [{ name: 'Manage Users', href: '/users', icon: UserPlus }] : []),
-    // Register User functionality is disabled - Admin can manage users from Manage Users page
-    // ...(canRegister ? [{ name: 'Register User', href: '/register', icon: UserPlus }] : []),
     { name: 'Profile', href: '/profile', icon: UserCircle },
   ];
 

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Patients from './pages/Patients';
 import Doctors from './pages/Doctors';
 import Appointments from './pages/Appointments';
+import Prescriptions from './pages/Prescriptions';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
 import Users from './pages/Users';
@@ -104,6 +105,14 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <Appointments />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/prescriptions"
+          element={
+            <PrivateRoute>
+              <Prescriptions />
             </PrivateRoute>
           }
         />
