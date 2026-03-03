@@ -166,6 +166,7 @@ export default function PrescriptionModal({ prescription, onSave, onClose }: Pre
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
   const [medicines, setMedicines] = useState<CreateMedicineDetailDto[]>([]);
   
   const [formData, setFormData] = useState<CreatePrescriptionDto>({
@@ -201,12 +202,64 @@ export default function PrescriptionModal({ prescription, onSave, onClose }: Pre
   }, [prescription]);
 
   useEffect(() => {
-    if (formData.doctorId) {
-      appointmentApi.getByDoctorId(formData.doctorId).then(data => {
-        setAppointments(data.filter(a => a.status === 'Completed'));
-      });
+    const fetchAppointments = async () => {
+      setAppointmentsLoading(true);
+      try {
+        let patientAppointments: Appointment[] = [];
+        let doctorAppointments: Appointment[] = [];
+        
+        if (formData.patientId) {
+          console.log('Fetching by patient:', formData.patientId);
+          patientAppointments = await appointmentApi.getByPatientId(formData.patientId);
+          console.log('Patient appointments:', patientAppointments);
+        }
+        if (formData.doctorId) {
+          console.log('Fetching by doctor:', formData.doctorId);
+          doctorAppointments = await appointmentApi.getByDoctorId(formData.doctorId);
+          console.log('Doctor appointments:', doctorAppointments);
+        }
+        
+        let filteredAppointments: Appointment[] = [];
+        
+        if (formData.patientId && formData.doctorId) {
+          const doctorAppointmentIds = new Set(doctorAppointments.map(a => a.id));
+          filteredAppointments = patientAppointments.filter(a => doctorAppointmentIds.has(a.id));
+        } else if (formData.patientId) {
+          filteredAppointments = patientAppointments;
+        } else if (formData.doctorId) {
+          filteredAppointments = doctorAppointments;
+        }
+        
+        console.log('All filtered:', filteredAppointments);
+        console.log('Statuses:', filteredAppointments.map(a => a.status));
+        
+        const completedAppointments = filteredAppointments;
+        // .filter(a => a.status === 'Completed');
+        console.log('Completed appointments:', completedAppointments);
+        setAppointments(completedAppointments);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+        setAppointments([]);
+      } finally {
+        setAppointmentsLoading(false);
+      }
+    };
+    
+    if (formData.patientId || formData.doctorId) {
+      fetchAppointments();
+    } else {
+      setAppointments([]);
     }
-  }, [formData.doctorId]);
+  }, [formData.patientId, formData.doctorId]);
+
+  const handleAppointmentChange = (appointmentId: string) => {
+    const selectedAppointment = appointments.find(a => a.id === appointmentId);
+    setFormData({
+      ...formData,
+      appointmentId,
+      doctorId: selectedAppointment?.doctorId || formData.doctorId,
+    });
+  };
 
   const handleAddMedicine = () => {
     setMedicines([
@@ -281,7 +334,7 @@ export default function PrescriptionModal({ prescription, onSave, onClose }: Pre
                 <select
                   required
                   value={formData.patientId}
-                  onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, patientId: e.target.value, appointmentId: '' })}
                   disabled={!!prescription}
                   className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 disabled:opacity-60"
                 >
@@ -298,7 +351,7 @@ export default function PrescriptionModal({ prescription, onSave, onClose }: Pre
                 <select
                   required
                   value={formData.doctorId}
-                  onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, doctorId: e.target.value, appointmentId: '' })}
                   disabled={!!prescription}
                   className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 disabled:opacity-60"
                 >
@@ -317,14 +370,16 @@ export default function PrescriptionModal({ prescription, onSave, onClose }: Pre
               <select
                 required
                 value={formData.appointmentId}
-                onChange={(e) => setFormData({ ...formData, appointmentId: e.target.value })}
-                disabled={!!prescription}
+                onChange={(e) => handleAppointmentChange(e.target.value)}
+                disabled={!!prescription || appointmentsLoading || (!formData.patientId && !formData.doctorId)}
                 className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 disabled:opacity-60"
               >
-                <option value="">Select Appointment</option>
+                <option value="">
+                  {appointmentsLoading ? 'Loading...' : !formData.patientId && !formData.doctorId ? 'Select patient or doctor first' : 'Select Appointment'}
+                </option>
                 {appointments.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.patientName} - {new Date(a.appointmentDate).toLocaleDateString()} - {a.reason}
+                    {new Date(a.appointmentDate).toLocaleDateString()} - {a.reason} (Dr. {a.doctorName})
                   </option>
                 ))}
               </select>
