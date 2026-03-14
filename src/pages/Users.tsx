@@ -1,23 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userApi } from '../api/users';
 import { roleApi } from '../api/roles';
-import { Search, Plus, Trash2, UserCircle, Shield, ToggleLeft, ToggleRight, Key, X } from 'lucide-react';
-import type { User, RegisterUserDto, Role } from '../types';
+import { userClaimApi } from '../api/userClaims';
+import { claimApi } from '../api/claims';
+import { Search, Plus, Trash2, UserCircle, Shield, ToggleLeft, ToggleRight, Key, X, FileKey } from 'lucide-react';
+import type { User, RegisterUserDto, Role, Claim, UserClaim } from '../types';
 
 export default function Users() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [modalState, setModalState] = useState<{
-    type: 'add' | 'delete' | 'reset' | null;
+    type: 'add' | 'delete' | 'reset' | 'role' | 'claims' | null;
     user?: User;
   }>({ type: null });
   const [roles, setRoles] = useState<Role[]>([]);
+  const [claims, setClaims] = useState<Claim[]>([]);
+  const [userClaims, setUserClaims] = useState<UserClaim[]>([]);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: userApi.getAll,
   });
+
+  useEffect(() => {
+    claimApi.getAll().then(setClaims).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (modalState.user?.id) {
+      userClaimApi.getByUserId(modalState.user.id).then(setUserClaims).catch(console.error);
+    }
+  }, [modalState.user?.id]);
 
   const createMutation = useMutation({
     mutationFn: (data: RegisterUserDto) => userApi.create(data),
@@ -58,6 +72,35 @@ export default function Users() {
     },
   });
 
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ id, roleId }: { id: string; roleId: string }) => 
+      userApi.updateRole(id, { roleId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setModalState({ type: null });
+    },
+  });
+
+  const assignClaimMutation = useMutation({
+    mutationFn: ({ userId, claimId }: { userId: string; claimId: string }) =>
+      userClaimApi.assign({ userId, claimId }),
+    onSuccess: () => {
+      if (modalState.user?.id) {
+        userClaimApi.getByUserId(modalState.user.id).then(setUserClaims).catch(console.error);
+      }
+    },
+  });
+
+  const removeClaimMutation = useMutation({
+    mutationFn: ({ userId, claimId }: { userId: string; claimId: string }) =>
+      userClaimApi.remove(userId, claimId),
+    onSuccess: () => {
+      if (modalState.user?.id) {
+        userClaimApi.getByUserId(modalState.user.id).then(setUserClaims).catch(console.error);
+      }
+    },
+  });
+
   const filteredUsers = users.filter(
     (user) =>
       user.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -83,13 +126,17 @@ export default function Users() {
     }
   };
 
+  const availableClaims = claims.filter(
+    (c) => c.isActive && !userClaims.some((uc) => uc.claimId === c.id)
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Manage Users</h1>
-          <p className="text-gray-500 mt-1">Manage user accounts and permissions</p>
+          <p className="text-gray-500 mt-1">Manage user accounts, roles and permissions</p>
         </div>
         <button
           onClick={() => {
@@ -179,6 +226,25 @@ export default function Users() {
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
+                          onClick={() => {
+                            roleApi.getActive().then(setRoles).catch(console.error);
+                            setModalState({ type: 'role', user });
+                          }}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          title="Change Role"
+                        >
+                          <Shield className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setModalState({ type: 'claims', user });
+                          }}
+                          className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Manage Claims"
+                        >
+                          <FileKey className="h-4 w-4" />
+                        </button>
+                        <button
                           onClick={() => setModalState({ type: 'reset', user })}
                           className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                           title="Reset Password"
@@ -261,6 +327,31 @@ export default function Users() {
         <ResetPasswordModal
           isLoading={resetPasswordMutation.isPending}
           onSave={(password) => resetPasswordMutation.mutate({ id: modalState.user!.id, password })}
+          onClose={() => setModalState({ type: null })}
+        />
+      )}
+
+      {/* Change Role Modal */}
+      {modalState.type === 'role' && modalState.user && (
+        <ChangeRoleModal
+          user={modalState.user}
+          roles={roles}
+          isLoading={updateRoleMutation.isPending}
+          onSave={(roleId) => updateRoleMutation.mutate({ id: modalState.user!.id, roleId })}
+          onClose={() => setModalState({ type: null })}
+        />
+      )}
+
+      {/* Manage Claims Modal */}
+      {modalState.type === 'claims' && modalState.user && (
+        <ManageClaimsModal
+          user={modalState.user}
+          userClaims={userClaims}
+          availableClaims={availableClaims}
+          isAssigning={assignClaimMutation.isPending}
+          isRemoving={removeClaimMutation.isPending}
+          onAssign={(claimId) => assignClaimMutation.mutate({ userId: modalState.user!.id, claimId })}
+          onRemove={(claimId) => removeClaimMutation.mutate({ userId: modalState.user!.id, claimId })}
           onClose={() => setModalState({ type: null })}
         />
       )}
@@ -442,6 +533,207 @@ function ResetPasswordModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function ChangeRoleModal({
+  user,
+  roles,
+  isLoading,
+  onSave,
+  onClose,
+}: {
+  user: User;
+  roles: Role[];
+  isLoading: boolean;
+  onSave: (roleId: string) => void;
+  onClose: () => void;
+}) {
+  const currentRole = roles.find((r) => r.name === user.role);
+  const [selectedRoleId, setSelectedRoleId] = useState(currentRole?.id || '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedRoleId && selectedRoleId !== currentRole?.id) {
+      onSave(selectedRoleId);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 border border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Change User Role</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-4 space-y-4">
+            <div className="p-4 bg-gray-50 rounded-xl">
+              <p className="text-sm text-gray-500">User</p>
+              <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+              <p className="text-sm text-gray-500">{user.email}</p>
+              <p className="text-sm text-gray-500 mt-1">Current Role: <span className="font-medium">{user.role}</span></p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">New Role</label>
+              <select
+                required
+                value={selectedRoleId}
+                onChange={(e) => setSelectedRoleId(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white"
+              >
+                <option value="">-- Select a role --</option>
+                {roles.filter(r => r.isActive).map((role) => (
+                  <option 
+                    key={role.id} 
+                    value={role.id}
+                    disabled={role.name === user.role}
+                  >
+                    {role.name} {role.name === user.role ? '(current)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading || !selectedRoleId || selectedRoleId === currentRole?.id}
+              className="px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 font-medium"
+            >
+              {isLoading ? 'Updating...' : 'Change Role'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ManageClaimsModal({
+  user,
+  userClaims,
+  availableClaims,
+  isAssigning,
+  isRemoving,
+  onAssign,
+  onRemove,
+  onClose,
+}: {
+  user: User;
+  userClaims: UserClaim[];
+  availableClaims: Claim[];
+  isAssigning: boolean;
+  isRemoving: boolean;
+  onAssign: (claimId: string) => void;
+  onRemove: (claimId: string) => void;
+  onClose: () => void;
+}) {
+  const [showAssign, setShowAssign] = useState(false);
+
+  return (
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 border border-gray-100 max-h-[80vh] flex flex-col">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Manage User Claims</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
+        
+        <div className="p-4 bg-gray-50 border-b border-gray-100">
+          <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+          <p className="text-sm text-gray-500">{user.email} - {user.role}</p>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="mb-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">Custom Claims (User-specific)</p>
+            {userClaims.length === 0 ? (
+              <p className="text-sm text-gray-500 italic">No custom claims assigned. User uses role-based permissions.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {userClaims.map((uc) => (
+                  <span
+                    key={uc.id}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-100 text-amber-700"
+                  >
+                    {uc.claimName}
+                    <button
+                      onClick={() => onRemove(uc.claimId)}
+                      disabled={isRemoving}
+                      className="hover:bg-amber-200 rounded p-0.5 disabled:opacity-50"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {showAssign && (
+            <div className="border-t border-gray-200 pt-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">Available Claims</p>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {availableClaims.map((claim) => (
+                  <button
+                    key={claim.id}
+                    onClick={() => {
+                      onAssign(claim.id);
+                      setShowAssign(false);
+                    }}
+                    disabled={isAssigning}
+                    className="w-full p-3 text-left rounded-lg border border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-colors disabled:opacity-50"
+                  >
+                    <div className="font-medium text-gray-900 text-sm">{claim.name}</div>
+                    <div className="text-xs text-gray-500">{claim.description}</div>
+                  </button>
+                ))}
+                {availableClaims.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-2">All claims are already assigned</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-between">
+          {!showAssign ? (
+            <button
+              onClick={() => setShowAssign(true)}
+              disabled={availableClaims.length === 0}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 text-sm font-medium"
+            >
+              <Plus className="h-4 w-4 inline mr-1" />
+              Assign Claim
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAssign(false)}
+              className="px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
+          >
+            Done
+          </button>
+        </div>
       </div>
     </div>
   );

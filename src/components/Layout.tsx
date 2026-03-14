@@ -13,6 +13,8 @@ import {
   UserPlus,
   Stethoscope as Heart,
   Pill,
+  Shield,
+  ClipboardList,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -37,6 +39,8 @@ const navigation = [
     { name: 'Appointments', href: '/appointments', icon: Calendar },
     { name: 'Prescriptions', href: '/prescriptions', icon: Pill },
     ...(isAdmin ? [{ name: 'Manage Users', href: '/users', icon: UserPlus }] : []),
+    ...(isAdmin ? [{ name: 'Claims', href: '/claims', icon: Shield }] : []),
+    ...(isAdmin ? [{ name: 'Role Claims', href: '/role-claims', icon: ClipboardList }] : []),
     { name: 'Profile', href: '/profile', icon: UserCircle },
   ];
 

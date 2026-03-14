@@ -11,6 +11,8 @@ import Prescriptions from './pages/Prescriptions';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
 import Users from './pages/Users';
+import Claims from './pages/Claims';
+import RoleClaims from './pages/RoleClaims';
 import { ToastContainer, useToast } from './components/Toast';
 import GlobalLoading from './components/GlobalLoading';
 import type { ReactNode } from 'react';
@@ -137,6 +139,22 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <Users />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/claims"
+          element={
+            <PrivateRoute>
+              <Claims />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/role-claims"
+          element={
+            <PrivateRoute>
+              <RoleClaims />
             </PrivateRoute>
           }
         />

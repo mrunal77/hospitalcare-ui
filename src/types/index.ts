@@ -75,6 +75,7 @@ export interface User {
   firstName: string;
   lastName: string;
   role: string;
+  roleId?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -204,4 +205,69 @@ export interface SearchMedicineResult {
   saltComposition: string;
   manufacturer: string;
   subCategory: string;
+}
+
+export interface Claim {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateClaimDto {
+  name: string;
+  description: string;
+  category: string;
+}
+
+export interface UpdateClaimDto {
+  name: string;
+  description: string;
+  category: string;
+}
+
+export interface UserClaim {
+  id: string;
+  userId: string;
+  claimId: string;
+  claimName?: string;
+  claimDescription?: string;
+  claimCategory?: string;
+  createdAt: string;
+}
+
+export interface CreateUserClaimDto {
+  userId: string;
+  claimId: string;
+}
+
+export interface UpdateUserClaimsDto {
+  userId: string;
+  claimIds: string[];
+}
+
+export interface RoleClaim {
+  id: string;
+  roleId: string;
+  claimId: string;
+  claimName?: string;
+  claimDescription?: string;
+  claimCategory?: string;
+  createdAt: string;
+}
+
+export interface CreateRoleClaimDto {
+  roleId: string;
+  claimId: string;
+}
+
+export interface UpdateRoleClaimsDto {
+  roleId: string;
+  claimIds: string[];
+}
+
+export interface UpdateUserRoleDto {
+  roleId: string;
 }

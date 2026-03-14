@@ -1,5 +1,5 @@
 import api from './client';
-import type { User, RegisterUserDto } from '../types';
+import type { User, RegisterUserDto, UpdateUserRoleDto } from '../types';
 
 export const userApi = {
   getAll: async (): Promise<User[]> => {
@@ -31,5 +31,10 @@ export const userApi = {
 
   resetPassword: async (id: string, newPassword: string): Promise<void> => {
     await api.put(`/users/${id}/reset-password`, newPassword);
+  },
+
+  updateRole: async (id: string, data: UpdateUserRoleDto): Promise<User> => {
+    const response = await api.put<User>(`/users/${id}/role`, data);
+    return response.data;
   },
 };
